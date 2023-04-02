@@ -1,10 +1,14 @@
 package dev.lissandrocunha.escola;
 
-import dev.lissandrocunha.escola.domain.aluno.Aluno;
-import dev.lissandrocunha.escola.domain.aluno.AlunoRepository;
-import dev.lissandrocunha.escola.domain.aluno.CPF;
-import dev.lissandrocunha.escola.domain.aluno.Email;
-import dev.lissandrocunha.escola.infra.aluno.AlunoRepositoryInMemory;
+import dev.lissandrocunha.escola.academico.application.aluno.matricular.MatricularAluno;
+import dev.lissandrocunha.escola.academico.application.aluno.matricular.MatricularAlunoDto;
+import dev.lissandrocunha.escola.academico.domain.aluno.Email;
+import dev.lissandrocunha.escola.academico.domain.aluno.LogAlunoMatriculado;
+import dev.lissandrocunha.escola.academico.infra.aluno.AlunoRepositoryInMemory;
+import dev.lissandrocunha.escola.gamificacao.application.GeraSeloAnuloNovato;
+import dev.lissandrocunha.escola.gamificacao.infra.selo.SeloRepositoryInMemory;
+import dev.lissandrocunha.escola.shared.domain.evento.PublicadorDeEventos;
+import dev.lissandrocunha.escola.shared.domain.vo.CPF;
 
 public class ApplicationEscola {
 
@@ -13,10 +17,14 @@ public class ApplicationEscola {
 	CPF cpf = new CPF("111.111.111-11");
 	Email email = new Email("aluno1@domain.com");
 
-	Aluno aluno = new Aluno(cpf, nome, email);
+	MatricularAlunoDto dto = new MatricularAlunoDto(nome, cpf.getNumero(), email.getEndereco());
 
-	AlunoRepository repositorio = new AlunoRepositoryInMemory();
-	repositorio.matricular(aluno);
+	PublicadorDeEventos publicador = new PublicadorDeEventos();
+	publicador.adicionar(new LogAlunoMatriculado());
+	publicador.adicionar(new GeraSeloAnuloNovato(new SeloRepositoryInMemory()));
+
+	MatricularAluno matricular = new MatricularAluno(new AlunoRepositoryInMemory(), publicador);
+	matricular.executar(dto);
     }
 
 }
